@@ -1,0 +1,237 @@
+{
+  "title": "Choose Your Own Ethics",
+  "subtitle": "A semester at Brigham Young Preparatory Academy",
+  "start": "welcome",
+  "counters": { "aiUses": 0 },
+  "flags": { "readingQuizAI": false },
+
+  "polls": {
+    "website_ethics": {
+      "question": "Is it ethical to use AI to turn your group's finished project into an interactive website?",
+      "options": {
+        "yes": "Yes, it is ethical.",
+        "no": "No, it is not ethical."
+      }
+    }
+  },
+
+  "nodes": {
+    "welcome": {
+      "text": "Welcome to a new semester at Brigham Young Preparatory Acadmeny!\n\nToday is the first day in US History",
+      "choices": [{ "label": "Begin", "next": "syllabus" }]
+    },
+
+    "syllabus": {
+      "text": "On your first day of class, you are assigned to read the syllabus and complete an associated quiz. There are 5 questions about the syllabus, all multiple choice. The syllabus is 15 pages long and as you look at the first page, it looks pretty common sense. Do you give the quiz questions and syllabus to AI to speed along the process?",
+      "choices": [
+        { "label": "Yes", "score": "bad", "inc": ["aiUses"], "recap": "Had AI do the syllabus quiz", "next": "syllabus_ai" },
+        { "label": "No", "score": "good", "recap": "Read the syllabus yourself", "next": "syllabus_read" }
+      ]
+    },
+    "syllabus_ai": {
+      "text": "You use AI to summarize the Syllabus, and provide you with the answers. You don't remember anything from the syllabus but it's just common sense, so you'll be fine.",
+      "next": "reading_quiz"
+    },
+    "syllabus_read": {
+      "text": "The reading takes forever,but you get 100% on the sylabus quiz! You are now prepared for the class and know the requirements.",
+      "next": "ai_policy"
+    },
+    "ai_policy": {
+      "text": "You also learn about the AI Use Policy: in this class, you cannot use AI to do your learning for you. You must not use AI on quizzes, tests, or assignments (outside of what is explicitly permitted, i.e. grammar/punctuation correction, brainstorming, personal TA)",
+      "next": "reading_quiz"
+    },
+
+    "reading_quiz": {
+      "text": "You forgot about a reading quiz that is due in 5 minutes. Do you throw the quiz in AI and have it give you the answers?",
+      "choices": [
+        { "label": "Yes", "score": "bad", "inc": ["aiUses"], "set": { "readingQuizAI": true }, "recap": "Had AI take the reading quiz", "next": "reading_quiz_ai" },
+        { "label": "No", "score": "good", "recap": "Took the reading quiz honestly", "next": "reading_quiz_honest" }
+      ]
+    },
+    "reading_quiz_ai": {
+      "text": "You get 100% on the Reading Quiz. Very lucky, but someone may have seen you... watch your back...",
+      "next": "website_poll"
+    },
+    "reading_quiz_honest": {
+      "text": "You get a 70%. Could be worse...",
+      "next": "extra_credit"
+    },
+
+    "extra_credit": {
+      "text": "Your grade in the class is now a B. There is an extra credit paper that you can do. You don't have time to write the 4 pages. Do you train AI on your previous papers and turn it in?",
+      "choices": [
+        { "label": "Yes", "score": "bad", "inc": ["aiUses"], "recap": "Had AI write the extra credit paper", "next": "extra_credit_ai" },
+        { "label": "No", "score": "good", "recap": "Skipped the AI extra credit paper", "next": "extra_credit_honest" }
+      ]
+    },
+    "extra_credit_ai": {
+      "text": "You don't get caught. Now your grade is an A-.",
+      "next": "website_poll"
+    },
+    "extra_credit_honest": {
+      "text": "Your grade is still a B, but your honor is intact!",
+      "next": "website_poll"
+    },
+
+    "website_poll": {
+      "text": "You have a large group project to do. Your team spends hours working together on brainstorming and designing/building every detail of the project from start to finish. When you do finish, you want to go above and beyond the requirements and use an AI to turn it into an interactive website. Would that be an ethical thing to do?",
+      "poll": "website_ethics",
+      "note": "Real-world poll: there's no right or wrong answer, and it doesn't affect your score.",
+      "choices": [
+        { "label": "Yes, it is ethical.", "pollOption": "yes", "next": "research_paper" },
+        { "label": "No, it is not ethical.", "pollOption": "no", "next": "research_paper" }
+      ]
+    },
+
+    "research_paper": {
+      "text": "An upcoming assignment has you writing a research paper. The instructions allow you to use AI to help find sources and nothing else.",
+      "choices": [
+        { "label": "You use AI to help formulate ideas for the structure of your paper and write your introduction", "score": "bad", "inc": ["aiUses"], "recap": "Had AI write your paper's introduction", "next": "paper_caught" },
+        { "label": "You use AI to find sources for your paper.", "score": "good", "recap": "Used AI only to find sources (allowed)", "next": "paper_sources" },
+        { "label": "You choose to just do things the old fashioned way.", "score": "good", "recap": "Wrote the paper the old fashioned way", "next": "paper_old_fashioned" }
+      ]
+    },
+    "paper_caught": {
+      "text": "Your teacher runs your paper through an AI checker and sees that you wrote your intro with AI. You receive a 0 on this assignment and your academic advisor is notified.",
+      "next": "disciplinary"
+    },
+    "paper_sources": {
+      "text": "You are able to complete your assignment faster and you get an A- score.",
+      "next": "midterm"
+    },
+    "paper_old_fashioned": {
+      "text": "You end up getting an A+ on the assignment, and you remember enough about your research that it becomes a conversation starter later on, but it did take a lot longer to complete.",
+      "next": "midterm"
+    },
+
+    "disciplinary": {
+      "text": "You get called into a disciplinary counsel for your AI usage. Do you admit that you have been using AI",
+      "choices": [
+        { "label": "Deny it", "score": "bad", "recap": "Denied your AI use to the disciplinary counsel", "next": "expelled" },
+        { "label": "Admit it", "score": "good", "recap": "Admitted your AI use to the disciplinary counsel", "next": "suspended" }
+      ]
+    },
+    "expelled": {
+      "text": "You deny, but your parents give them your chat history and you get expelled.",
+      "ending": "Expelled"
+    },
+    "suspended": {
+      "text": "You admit and you get off with a 2-day suspension.",
+      "next": "midterm"
+    },
+
+    "midterm": {
+      "text": "You are preparing for the midterm. Your teacher has provided a blank study guide! How do you choose to prepare for the exam?",
+      "choices": [
+        { "label": "Have AI fill out the study guide for you and give it a quick read.", "score": "bad", "inc": ["aiUses"], "recap": "Had AI fill out your study guide", "next": "midterm_ai" },
+        { "label": "Have AI explain the questions you're confused about and generate you practice multiple choice questions to test your understanding.", "score": "good", "recap": "Used AI as a tutor for midterm practice", "next": "midterm_tutor" },
+        { "label": "Fill out the study guide by yourself,", "score": "good", "recap": "Filled out the study guide yourself", "next": "midterm_self" }
+      ]
+    },
+    "midterm_ai": {
+      "text": "You take the exam and do pretty well, but you don't remember everything required. You get a 75% on the test!",
+      "next": "final_project"
+    },
+    "midterm_tutor": {
+      "text": "Your prep paid off! Those practice questions you did with AI were really helpful! You get a 100% on the exam!",
+      "next": "final_project"
+    },
+    "midterm_self": {
+      "text": "The study guide helpe you a ton! You did very well on the test, getting a 95% overall!",
+      "next": "final_project"
+    },
+
+    "final_project": {
+      "text": "You have a final group project! You are very very busy though. If you team up with the smart kids, they are going to take a lot of your time. They FORBID using AI in their project, unless it’s brainstorming. Do you ask them to team up or do the project with the lazy kids and use ai?",
+      "choices": [
+        { "label": "Ask to join the smart kids group", "score": "good", "recap": "Asked to join the smart kids", "next": "smart_kids_check" },
+        { "label": "Just join the lazy kids group", "score": "bad", "recap": "Joined the lazy kids to use AI", "next": "lazy_kids_crunch" }
+      ]
+    },
+    "smart_kids_check": {
+      "branch": [
+        { "if": { "flag": "readingQuizAI" }, "next": "smart_kids_decline" }
+      ],
+      "else": "smart_kids_accept"
+    },
+    "smart_kids_accept": {
+      "text": "They say yes!\n\nYou get an A on the project!",
+      "next": "conference_check"
+    },
+    "smart_kids_decline": {
+      "text": "One of the smart girls saw you use AI on your reading quiz. She declines and you get banished to the lazy kids. Loser.",
+      "next": "lazy_kids_crunch"
+    },
+    "lazy_kids_crunch": {
+      "text": "You got 10 minutes before the group project is due. None of your group actually worked on it. Do you ask the teacher for more time or AI this thing?",
+      "choices": [
+        { "label": "AI this entire project", "score": "bad", "inc": ["aiUses"], "recap": "Had AI do the entire group project", "next": "project_ai" },
+        { "label": "Ask for an extension", "score": "good", "recap": "Asked the teacher for an extension", "next": "extension_check" }
+      ]
+    },
+    "project_ai": {
+      "text": "You get a C+",
+      "next": "conference_check"
+    },
+    "extension_check": {
+      "branch": [
+        { "if": { "counter": "aiUses", "op": ">", "value": 2 }, "next": "extension_refused" }
+      ],
+      "else": "extension_granted"
+    },
+    "extension_granted": {
+      "text": "The teacher gives you a few more days to complete the project. She had mercy on your soul.\n\nYou get a B+",
+      "next": "conference_check"
+    },
+    "extension_refused": {
+      "text": "The Teacher refuses. She knows you are a lazy worker...Maybe you shouldn't have used all that AI...\n\nYou get a D",
+      "next": "conference_check"
+    },
+
+    "conference_check": {
+      "branch": [
+        { "if": { "counter": "aiUses", "op": ">", "value": 0 }, "next": "conference" }
+      ],
+      "else": "semester_over"
+    },
+    "conference": {
+      "text": "At the end of the semester, your teacher offers to have a private conference if you'd like to discuss your grade. Do you take this opportunity to confess to your use of AI during the semester?",
+      "choices": [
+        { "label": "Yes", "score": "good", "recap": "Confessed your AI use to your teacher", "next": "confessed" },
+        { "label": "No", "score": "bad", "recap": "Kept your AI use a secret", "next": "no_confession" }
+      ]
+    },
+    "confessed": {
+      "text": "Your teacher appreciates your honesty and gives you the opportunity to redo the assignments that you used AI on for 90% credit. It's embarrassing, and it takes a long time to do all those assignments yourself, but you feel good that you were honest.",
+      "next": "semester_over"
+    },
+    "no_confession": {
+      "text": "You play it smooth and politely decline. You know your grade is what you deserve... or is it?",
+      "next": "semester_over"
+    },
+
+    "semester_over": {
+      "text": "The semester is over! Great job on all of your hard work and effort! Time for your final exam!",
+      "choices": [{ "label": "Take the Final Exam", "next": "final_exam_check" }]
+    },
+    "final_exam_check": {
+      "branch": [
+        { "if": { "counter": "aiUses", "op": ">=", "value": 3 }, "next": "final_exam_bad" },
+        { "if": { "counter": "aiUses", "op": ">=", "value": 1 }, "next": "final_exam_mixed" }
+      ],
+      "else": "final_exam_good"
+    },
+    "final_exam_bad": {
+      "text": "Since you've used AI to complete the majority of your assignments, you don't remember much from this class. You did your best to remember, but end up getting 30% on the final! YIKES!\nYou end with a C- in the class and have to explain to your parents what happened.\n\nMaybe you should be careful about the ways you use AI in your classes in the future...",
+      "ending": "Final grade: C-"
+    },
+    "final_exam_mixed": {
+      "text": "You take the exam and remember a lot! However, there are still gaps in your understanding from the assignments that AI completed for you. You got a 75% on the final, dropping your grade to a B-.\n\nMaybe you should be careful about the ways you use AI in your classes in the future ...",
+      "ending": "Final grade: B-"
+    },
+    "final_exam_good": {
+      "text": "Congrats! Thanks to your hard work throughout the semester, you fly through this final. You get a 98%, ending with an A+ in the class.",
+      "ending": "Final grade: A+"
+    }
+  }
+}

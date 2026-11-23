@@ -1,0 +1,15 @@
+services:
+  game:
+    build: .
+    container_name: choose-your-own-ethics
+    ports:
+      - "3000:3000"
+    environment:
+      # Change this before presenting!
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+    volumes:
+      # Stats database lives here so it survives rebuilds/restarts
+      - ./data:/app/data
+      # Edit story.json and just refresh the page — no rebuild needed
+      - ./story.json:/app/story.json:ro
+    restart: unless-stopped

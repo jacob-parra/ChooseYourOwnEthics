@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ethics Game Admin</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .wrap { max-width: 1000px; }
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .tile { background: var(--card); border: 1px solid var(--card-edge); border-radius: 12px; padding: 16px 18px; }
+    .tile .num { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .tile .lbl { color: var(--ink-dim); font-size: .88rem; margin-top: 4px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } }
+    .panel { background: var(--card); border: 1px solid var(--card-edge); border-radius: 12px; padding: 18px 20px; }
+    .panel h3 { margin: 0 0 4px; font-size: 1rem; }
+    .panel .sub { color: var(--ink-dim); font-size: .88rem; margin: 0 0 8px; }
+    .hbar { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin-top: 10px; font-size: .92rem; }
+    .hbar .bar { grid-column: 1 / -1; height: 8px; border-radius: 99px; background: rgba(255,255,255,.07); overflow: hidden; }
+    .hbar .bar > span { display: block; height: 100%; background: var(--accent); }
+    .hbar.poll .bar > span { background: var(--poll); }
+    .muted { color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--card-edge); white-space: nowrap; }
+    th { color: var(--ink-dim); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+    td.g { color: var(--good); } td.b { color: var(--bad); }
+    .x { background: none; border: 1px solid var(--card-edge); border-radius: 8px; padding: 2px 8px; color: var(--ink-dim); }
+    .x:hover { border-color: var(--bad); color: var(--bad); }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .updated { color: var(--ink-dim); font-size: .82rem; display: flex; gap: 10px; align-items: center; }
+    .login { max-width: 380px; margin: 40px auto; display: grid; gap: 14px; }
+    .login h1 { font-family: var(--serif); margin: 0 0 4px; font-size: 1.6rem; }
+    .login input { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--card-edge); border-radius: 10px; padding: 12px 14px; }
+    .login input:focus { outline: none; border-color: var(--accent); }
+    .login .err { color: var(--bad); margin: 0; min-height: 1.2em; font-size: .9rem; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="masthead">
+      <div class="brand"><b>Choose Your Own Ethics</b> · Admin</div>
+      <div class="updated"><span id="updated"></span> <button class="x" id="logout" hidden>Log out</button></div>
+    </header>
+
+    <form class="card login" id="login" hidden>
+      <h1>Admin login</h1>
+      <input type="password" id="password" placeholder="Admin password" autocomplete="current-password" required>
+      <button class="btn" type="submit">Log in</button>
+      <p class="err" id="loginErr"></p>
+    </form>
+
+    <div id="dash" hidden>
+    <div class="tiles" id="tiles"></div>
+
+    <div class="section">
+      <h2>Real-world polls</h2>
+      <div class="grid2" id="polls"></div>
+    </div>
+
+    <div class="section grid2">
+      <div class="panel"><h3>Endings reached</h3><p class="sub">Completed playthroughs</p><div id="endings"></div></div>
+      <div class="panel"><h3>Score distribution</h3><p class="sub">Good / bad decisions per completed run</p><div id="scores"></div></div>
+    </div>
+
+    <div class="section">
+      <h2>Recent playthroughs</h2>
+      <div class="panel table-wrap">
+        <table>
+          <thead><tr><th>Started</th><th>Status</th><th>Good</th><th>Bad</th><th>Ending</th><th>Poll</th><th></th></tr></thead>
+          <tbody id="recent"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Tools</h2>
+      <div class="actions">
+        <a class="btn ghost" href="/" target="_blank" rel="noopener">Open the game ↗</a>
+        <a class="btn ghost" href="/api/admin/export.csv">Export CSV</a>
+        <button class="btn ghost" id="clearUnfinished">Remove unfinished runs</button>
+        <button class="btn danger" id="reset">Reset all stats</button>
+      </div>
+    </div>
+    </div>
+  </main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmtTime = iso => iso ? new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+  const fmt1 = n => n == null ? '—' : (Math.round(n * 10) / 10).toString();
+  let pollLabels = {};
+
+  function bars(rows, cls = '') {
+    const max = Math.max(1, ...rows.map(r => r.n));
+    const total = rows.reduce((a, r) => a + r.n, 0) || 1;
+    return rows.length
+      ? rows.map(r => `<div class="hbar ${cls}"><span>${esc(r.label)}</span><span class="muted">${r.n} · ${Math.round(r.n / total * 100)}%</span><div class="bar"><span style="width:${r.n / max * 100}%"></span></div></div>`).join('')
+      : '<p class="muted">No data yet.</p>';
+  }
+
+  async function load() {
+    const res = await fetch('/api/admin/stats', { cache: 'no-store' });
+    const authed = res.ok;
+    $('login').hidden = authed; $('dash').hidden = !authed; $('logout').hidden = !authed;
+    if (!authed) { $('updated').textContent = ''; $('password').focus(); return; }
+    const s = await res.json();
+
+    const rate = s.started ? Math.round(s.completed / s.started * 100) + '%' : '—';
+    $('tiles').innerHTML = [
+      [s.completed, 'Completed playthroughs'],
+      [s.started, 'Total started'],
+      [rate, 'Completion rate'],
+      [fmt1(s.avgGood), 'Avg. good decisions'],
+      [fmt1(s.avgBad), 'Avg. bad decisions'],
+    ].map(([n, l]) => `<div class="tile"><div class="num">${esc(n)}</div><div class="lbl">${esc(l)}</div></div>`).join('');
+
+    pollLabels = {};
+    $('polls').innerHTML = Object.entries(s.polls).map(([id, p]) => {
+      for (const [oid, o] of Object.entries(p.options)) pollLabels[id + ':' + oid] = o.label;
+      const rows = Object.values(p.options).map(o => ({ label: o.label, n: o.count }));
+      return `<div class="panel"><h3>${esc(p.question)}</h3><p class="sub">${p.total} ${p.total === 1 ? 'response' : 'responses'}</p>${p.total ? bars(rows, 'poll') : '<p class="muted">No responses yet.</p>'}</div>`;
+    }).join('') || '<p class="muted">No polls defined in story.json.</p>';
+
+    $('endings').innerHTML = bars(s.endings.map(e => ({ label: e.ending || '(none)', n: e.n })));
+    $('scores').innerHTML = bars(s.scores.map(r => ({ label: `${r.good} good / ${r.bad} bad`, n: r.n })));
+
+    $('recent').innerHTML = s.recent.map(r => `
+      <tr>
+        <td>${esc(fmtTime(r.started_at))}</td>
+        <td class="muted">${r.finished_at ? 'Finished' : 'In progress / quit'}</td>
+        <td class="g">${r.good ?? ''}</td>
+        <td class="b">${r.bad ?? ''}</td>
+        <td>${esc(r.ending || '')}</td>
+        <td class="muted">${esc((r.polls || '').split(',').filter(Boolean).map(k => pollLabels[k] || k).join(', '))}</td>
+        <td><button class="x" data-del="${esc(r.id)}" title="Delete this run">✕</button></td>
+      </tr>`).join('') || '<tr><td colspan="7" class="muted">No playthroughs yet.</td></tr>';
+
+    $('updated').textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  }
+
+  $('recent').addEventListener('click', async e => {
+    const id = e.target.dataset?.del;
+    if (!id || !confirm('Delete this playthrough from the stats?')) return;
+    await fetch('/api/admin/runs/' + id, { method: 'DELETE' });
+    load();
+  });
+  $('clearUnfinished').onclick = async () => {
+    if (!confirm('Remove all playthroughs that were never finished?')) return;
+    await fetch('/api/admin/clear-unfinished', { method: 'POST' });
+    load();
+  };
+  $('reset').onclick = async () => {
+    if (!confirm('Reset ALL stats? This permanently deletes every playthrough and poll answer.')) return;
+    if (prompt('Type RESET to confirm') !== 'RESET') return;
+    await fetch('/api/admin/reset', { method: 'POST' });
+    load();
+  };
+
+  $('login').onsubmit = async e => {
+    e.preventDefault();
+    const res = await fetch('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: $('password').value }) });
+    $('loginErr').textContent = res.ok ? '' : 'Wrong password.';
+    $('password').value = '';
+    if (res.ok) load();
+  };
+  $('logout').onclick = async () => { await fetch('/api/admin/logout', { method: 'POST' }); load(); };
+
+  load();
+  setInterval(() => { if ($('login').hidden) load(); }, 10000);
+})();
+</script>
+</body>
+</html>
