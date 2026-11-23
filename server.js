@@ -31,7 +31,15 @@ db.exec(`
     created_at TEXT NOT NULL,
     PRIMARY KEY (run_id, poll_id)
   );
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 `);
+
+const getSetting = (key, fallback) => db.prepare('SELECT value FROM settings WHERE key = ?').get(key)?.value ?? fallback;
+const setSetting = (key, value) => db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, String(value));
+const isPractice = () => getSetting('practice', 'false') === 'true';
 
 function loadStory() {
   return JSON.parse(fs.readFileSync(STORY_PATH, 'utf8'));
@@ -52,6 +60,7 @@ function validateStory(story) {
     if (n.poll && !story.polls?.[n.poll]) problems.push(`${id} -> missing poll "${n.poll}"`);
     if (!n.next && !n.choices && !n.branch && !n.ending) problems.push(`${id} is a dead end with no "ending"`);
   }
+  (story.chapters || []).forEach(c => { if (!ids.has(c.start)) problems.push(`chapter "${c.name}" starts at missing node "${c.start}"`); });
   if (problems.length) {
     console.error('story.json problems:\n  ' + problems.join('\n  '));
     process.exit(1);
@@ -67,7 +76,8 @@ function pollCounts() {
     out[pollId] = { question: poll.question, options: {}, total: 0 };
     for (const [optId, label] of Object.entries(poll.options)) out[pollId].options[optId] = { label, count: 0 };
   }
-  for (const r of db.prepare('SELECT poll_id, option_id, COUNT(*) AS n FROM poll_answers GROUP BY poll_id, option_id').all()) {
+  // Join on runs so answers from deleted/reset runs never count.
+  for (const r of db.prepare('SELECT p.poll_id, p.option_id, COUNT(*) AS n FROM poll_answers p JOIN runs r ON r.id = p.run_id GROUP BY p.poll_id, p.option_id').all()) {
     if (!out[r.poll_id]?.options[r.option_id]) continue;
     out[r.poll_id].options[r.option_id].count = r.n;
     out[r.poll_id].total += r.n;
@@ -86,7 +96,7 @@ function adminStats() {
     SELECT r.id, r.started_at, r.finished_at, r.good, r.bad, r.ending,
            (SELECT group_concat(poll_id || ':' || option_id) FROM poll_answers p WHERE p.run_id = r.id) AS polls
     FROM runs r ORDER BY r.started_at DESC LIMIT 50`).all();
-  return { started, completed, avgGood: avg.good, avgBad: avg.bad, endings, scores, recent, polls: pollCounts() };
+  return { started, completed, avgGood: avg.good, avgBad: avg.bad, endings, scores, recent, polls: pollCounts(), practice: isPractice() };
 }
 
 function exportCsv() {
@@ -153,8 +163,11 @@ const server = http.createServer(async (req, res) => {
     // ---- public game API ----
     if (m === 'GET' && p === '/api/story') return send(res, 200, loadStory());
     if (m === 'GET' && p === '/api/polls') return send(res, 200, pollCounts());
+    if (m === 'GET' && p === '/api/config') return send(res, 200, { practice: isPractice() });
 
     if (m === 'POST' && p === '/api/runs') {
+      // Practice mode: hand out no run id, so nothing from this playthrough is recorded.
+      if (isPractice()) return send(res, 201, { id: null, practice: true });
       const id = crypto.randomUUID();
       db.prepare('INSERT INTO runs (id, started_at) VALUES (?, ?)').run(id, now());
       return send(res, 201, { id });
@@ -165,6 +178,8 @@ const server = http.createServer(async (req, res) => {
       const { pollId, option } = await readJson(req);
       const poll = loadStory().polls?.[pollId];
       if (!poll || !poll.options[option]) return send(res, 400, { error: 'unknown poll/option' });
+      // A tab left open across a stats reset still holds a deleted run id; ignore its answers.
+      if (!db.prepare('SELECT 1 FROM runs WHERE id = ? AND finished_at IS NULL').get(match[1])) return send(res, 404, { error: 'unknown run' });
       db.prepare(`INSERT INTO poll_answers (run_id, poll_id, option_id, created_at) VALUES (?, ?, ?, ?)
                   ON CONFLICT(run_id, poll_id) DO UPDATE SET option_id = excluded.option_id`).run(match[1], pollId, option, now());
       return send(res, 200, { ok: true });
@@ -195,6 +210,11 @@ const server = http.createServer(async (req, res) => {
       if (m === 'GET' && p === '/api/admin/export.csv') {
         res.writeHead(200, { 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename="playthroughs.csv"' });
         return res.end(exportCsv());
+      }
+      if (m === 'POST' && p === '/api/admin/practice') {
+        const { enabled } = await readJson(req);
+        setSetting('practice', enabled ? 'true' : 'false');
+        return send(res, 200, { practice: isPractice() });
       }
       if (m === 'POST' && p === '/api/admin/reset') {
         db.exec('DELETE FROM poll_answers; DELETE FROM runs;');

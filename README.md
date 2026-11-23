@@ -41,8 +41,24 @@ Each choice can have:
 - `"set": { "readingQuizAI": true }`: sets a flag.
 - `"recap"`: the short line shown in the end-of-game decision list.
 
+### Grades
+
+The header shows the player's running class grade (click it to see the gradebook), and a pop-up appears whenever a grade changes.
+
+- `"grade": { "item": "Midterm", "score": 95, "weight": 2 }` on a screen records that score when the player reaches it. Add `"ai": true` if the score was earned with AI. Use `"bonus": 5` instead of `score` for extra credit points.
+- `"regradeAI": 90` on a screen (the confession) changes every AI-earned score to 90%.
+- `"finalGrade": "A+"` on an ending is the grade the player finishes with, whatever the running average says.
+- `gradeScale` at the top sets the percentage cutoff for each letter.
+- `chapters` at the top drives the progress bar (each chapter begins at its `start` screen).
+
+## Player conveniences
+
+- **Resume:** if the page is refreshed mid-game, the player picks up where they left off. **Start over** in the header begins a new run.
+- **Kiosk reset:** the end screen goes back to the title after 60 seconds with no activity, ready for the next player.
+
 ## Admin page
 
+- **Practice mode:** while it's on, playthroughs and poll answers aren't recorded, so your group can test freely. Turn it off before real players start.
 - Completed and total playthroughs, completion rate, average good/bad decisions
 - Real-world poll results
 - Which endings players reached and the score distribution

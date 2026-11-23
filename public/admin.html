@@ -36,6 +36,9 @@
     .login input:focus { outline: none; border-color: var(--accent); }
     .login .err { color: var(--bad); margin: 0; min-height: 1.2em; font-size: .9rem; }
     [hidden] { display: none !important; }
+    .practice-banner { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+      background: var(--poll-bg); border: 1px solid var(--poll); color: #e4d9ff; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; }
+    .practice-banner .btn { padding: 8px 16px; background: var(--poll); color: #1d1430; }
   </style>
 </head>
 <body>
@@ -53,6 +56,10 @@
     </form>
 
     <div id="dash" hidden>
+    <div class="practice-banner" id="practiceBanner" hidden>
+      <span><b>Practice mode is ON.</b> Playthroughs and poll answers are not being recorded.</span>
+      <button class="btn" data-practice="false">Turn off</button>
+    </div>
     <div class="tiles" id="tiles"></div>
 
     <div class="section">
@@ -79,6 +86,7 @@
       <h2>Tools</h2>
       <div class="actions">
         <a class="btn ghost" href="/" target="_blank" rel="noopener">Open the game ↗</a>
+        <button class="btn ghost" id="practiceToggle"></button>
         <a class="btn ghost" href="/api/admin/export.csv">Export CSV</a>
         <button class="btn ghost" id="clearUnfinished">Remove unfinished runs</button>
         <button class="btn danger" id="reset">Reset all stats</button>
@@ -109,6 +117,10 @@
     $('login').hidden = authed; $('dash').hidden = !authed; $('logout').hidden = !authed;
     if (!authed) { $('updated').textContent = ''; $('password').focus(); return; }
     const s = await res.json();
+
+    $('practiceBanner').hidden = !s.practice;
+    $('practiceToggle').textContent = s.practice ? 'Turn off practice mode' : 'Turn on practice mode';
+    $('practiceToggle').dataset.practice = String(!s.practice);
 
     const rate = s.started ? Math.round(s.completed / s.started * 100) + '%' : '—';
     $('tiles').innerHTML = [
@@ -147,6 +159,12 @@
     const id = e.target.dataset?.del;
     if (!id || !confirm('Delete this playthrough from the stats?')) return;
     await fetch('/api/admin/runs/' + id, { method: 'DELETE' });
+    load();
+  });
+  document.addEventListener('click', async e => {
+    const v = e.target.dataset?.practice;
+    if (v === undefined) return;
+    await fetch('/api/admin/practice', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: v === 'true' }) });
     load();
   });
   $('clearUnfinished').onclick = async () => {

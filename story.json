@@ -2,6 +2,22 @@
   "title": "Choose Your Own Ethics",
   "subtitle": "A semester at Brigham Young Preparatory Academy",
   "start": "welcome",
+  "chapters": [
+    { "name": "First Day", "start": "welcome" },
+    { "name": "Reading Quiz", "start": "reading_quiz" },
+    { "name": "Group Project", "start": "website_poll" },
+    { "name": "Research Paper", "start": "research_paper" },
+    { "name": "Midterm", "start": "midterm" },
+    { "name": "Final Project", "start": "final_project" },
+    { "name": "End of Semester", "start": "conference" },
+    { "name": "Final Exam", "start": "semester_over" }
+  ],
+
+  "gradeScale": [
+    ["A+", 97], ["A", 93], ["A-", 90], ["B+", 87], ["B", 83], ["B-", 80],
+    ["C+", 77], ["C", 73], ["C-", 70], ["D+", 67], ["D", 63], ["D-", 60], ["F", 0]
+  ],
+
   "counters": { "aiUses": 0 },
   "flags": { "readingQuizAI": false },
 
@@ -29,10 +45,12 @@
       ]
     },
     "syllabus_ai": {
+      "grade": { "item": "Syllabus Quiz", "score": 100, "ai": true },
       "text": "You use AI to summarize the Syllabus, and provide you with the answers. You don't remember anything from the syllabus but it's just common sense, so you'll be fine.",
       "next": "reading_quiz"
     },
     "syllabus_read": {
+      "grade": { "item": "Syllabus Quiz", "score": 100 },
       "text": "The reading takes forever,but you get 100% on the sylabus quiz! You are now prepared for the class and know the requirements.",
       "next": "ai_policy"
     },
@@ -49,10 +67,12 @@
       ]
     },
     "reading_quiz_ai": {
+      "grade": { "item": "Reading Quiz", "score": 100, "ai": true },
       "text": "You get 100% on the Reading Quiz. Very lucky, but someone may have seen you... watch your back...",
       "next": "website_poll"
     },
     "reading_quiz_honest": {
+      "grade": { "item": "Reading Quiz", "score": 70 },
       "text": "You get a 70%. Could be worse...",
       "next": "extra_credit"
     },
@@ -65,6 +85,7 @@
       ]
     },
     "extra_credit_ai": {
+      "grade": { "item": "Extra Credit Paper", "bonus": 5, "ai": true },
       "text": "You don't get caught. Now your grade is an A-.",
       "next": "website_poll"
     },
@@ -92,14 +113,17 @@
       ]
     },
     "paper_caught": {
+      "grade": { "item": "Research Paper", "score": 0, "weight": 2, "ai": true },
       "text": "Your teacher runs your paper through an AI checker and sees that you wrote your intro with AI. You receive a 0 on this assignment and your academic advisor is notified.",
       "next": "disciplinary"
     },
     "paper_sources": {
+      "grade": { "item": "Research Paper", "score": 91, "weight": 2 },
       "text": "You are able to complete your assignment faster and you get an A- score.",
       "next": "midterm"
     },
     "paper_old_fashioned": {
+      "grade": { "item": "Research Paper", "score": 98, "weight": 2 },
       "text": "You end up getting an A+ on the assignment, and you remember enough about your research that it becomes a conversation starter later on, but it did take a lot longer to complete.",
       "next": "midterm"
     },
@@ -129,14 +153,17 @@
       ]
     },
     "midterm_ai": {
+      "grade": { "item": "Midterm", "score": 75, "weight": 2, "ai": true },
       "text": "You take the exam and do pretty well, but you don't remember everything required. You get a 75% on the test!",
       "next": "final_project"
     },
     "midterm_tutor": {
+      "grade": { "item": "Midterm", "score": 100, "weight": 2 },
       "text": "Your prep paid off! Those practice questions you did with AI were really helpful! You get a 100% on the exam!",
       "next": "final_project"
     },
     "midterm_self": {
+      "grade": { "item": "Midterm", "score": 95, "weight": 2 },
       "text": "The study guide helpe you a ton! You did very well on the test, getting a 95% overall!",
       "next": "final_project"
     },
@@ -155,6 +182,7 @@
       "else": "smart_kids_accept"
     },
     "smart_kids_accept": {
+      "grade": { "item": "Final Group Project", "score": 95, "weight": 2 },
       "text": "They say yes!\n\nYou get an A on the project!",
       "next": "conference_check"
     },
@@ -170,6 +198,7 @@
       ]
     },
     "project_ai": {
+      "grade": { "item": "Final Group Project", "score": 78, "weight": 2, "ai": true },
       "text": "You get a C+",
       "next": "conference_check"
     },
@@ -180,10 +209,12 @@
       "else": "extension_granted"
     },
     "extension_granted": {
+      "grade": { "item": "Final Group Project", "score": 88, "weight": 2 },
       "text": "The teacher gives you a few more days to complete the project. She had mercy on your soul.\n\nYou get a B+",
       "next": "conference_check"
     },
     "extension_refused": {
+      "grade": { "item": "Final Group Project", "score": 65, "weight": 2 },
       "text": "The Teacher refuses. She knows you are a lazy worker...Maybe you shouldn't have used all that AI...\n\nYou get a D",
       "next": "conference_check"
     },
@@ -202,6 +233,7 @@
       ]
     },
     "confessed": {
+      "regradeAI": 90,
       "text": "Your teacher appreciates your honesty and gives you the opportunity to redo the assignments that you used AI on for 90% credit. It's embarrassing, and it takes a long time to do all those assignments yourself, but you feel good that you were honest.",
       "next": "semester_over"
     },
@@ -222,14 +254,20 @@
       "else": "final_exam_good"
     },
     "final_exam_bad": {
+      "grade": { "item": "Final Exam", "score": 30, "weight": 3 },
+      "finalGrade": "C-",
       "text": "Since you've used AI to complete the majority of your assignments, you don't remember much from this class. You did your best to remember, but end up getting 30% on the final! YIKES!\nYou end with a C- in the class and have to explain to your parents what happened.\n\nMaybe you should be careful about the ways you use AI in your classes in the future...",
       "ending": "Final grade: C-"
     },
     "final_exam_mixed": {
+      "grade": { "item": "Final Exam", "score": 75, "weight": 3 },
+      "finalGrade": "B-",
       "text": "You take the exam and remember a lot! However, there are still gaps in your understanding from the assignments that AI completed for you. You got a 75% on the final, dropping your grade to a B-.\n\nMaybe you should be careful about the ways you use AI in your classes in the future ...",
       "ending": "Final grade: B-"
     },
     "final_exam_good": {
+      "grade": { "item": "Final Exam", "score": 98, "weight": 3 },
+      "finalGrade": "A+",
       "text": "Congrats! Thanks to your hard work throughout the semester, you fly through this final. You get a 98%, ending with an A+ in the class.",
       "ending": "Final grade: A+"
     }

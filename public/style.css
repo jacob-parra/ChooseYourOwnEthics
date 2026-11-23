@@ -37,7 +37,59 @@ a { color: var(--accent); }
 .masthead { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
 .brand { font-family: var(--serif); font-size: 1.05rem; letter-spacing: .02em; color: var(--ink-dim); }
 .brand b { color: var(--accent); font-weight: 600; }
-.step { font-size: .85rem; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+[hidden] { display: none !important; }
+
+/* ---------- HUD: grade pill, gradebook, practice badge ---------- */
+.hud { display: flex; align-items: center; gap: 12px; }
+.badge { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; padding: 4px 10px; border-radius: 99px; }
+.badge.practice { background: var(--poll-bg); color: #ddd0ff; border: 1px solid var(--poll); }
+.linkish { background: none; border: 0; padding: 0; color: var(--ink-dim); font-size: .85rem; text-decoration: underline; text-underline-offset: 3px; }
+.linkish:hover { color: var(--ink); }
+.gb-wrap { position: relative; }
+.grade-pill {
+  display: inline-flex; align-items: baseline; gap: 8px;
+  background: var(--card); border: 1px solid var(--card-edge); border-radius: 99px; padding: 6px 14px;
+  transition: border-color .15s;
+}
+.grade-pill:hover, .grade-pill[aria-expanded="true"] { border-color: var(--accent); }
+.gp-lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-dim); }
+.gp-val { font-family: var(--serif); font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+.gp-pct { font-size: .85rem; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.gb-pop {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; width: 280px;
+  background: var(--card); border: 1px solid var(--card-edge); border-radius: 12px; padding: 14px 16px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.45);
+}
+.gb-pop h3 { margin: 0 0 8px; font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-dim); }
+.gradebook { list-style: none; margin: 0; padding: 0; }
+.gradebook li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--card-edge); font-size: .95rem; }
+.gradebook em { color: var(--ink-dim); font-style: normal; font-size: .85em; }
+.gb-score { font-variant-numeric: tabular-nums; color: var(--ink-dim); }
+.gb-total { display: flex; justify-content: space-between; padding-top: 10px; font-weight: 700; }
+.gb-total span:last-child { color: var(--accent); font-family: var(--serif); font-size: 1.1rem; }
+.gb-empty { margin: 0; color: var(--ink-dim); font-size: .92rem; }
+.report { background: rgba(255,255,255,.03); border: 1px solid var(--card-edge); border-radius: 12px; padding: 8px 18px 14px; }
+
+/* ---------- semester progress ---------- */
+.progress { margin: -10px 0 22px; }
+.pg-labels { display: flex; justify-content: space-between; font-size: .82rem; color: var(--ink-dim); margin-bottom: 6px; }
+.pg-now { color: var(--ink); font-weight: 600; }
+.pg-track { height: 6px; border-radius: 99px; background: rgba(255,255,255,.07); overflow: hidden; }
+.pg-track > span { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .6s ease; }
+
+/* ---------- toasts ---------- */
+.toasts { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); display: grid; gap: 8px; z-index: 50; width: min(420px, calc(100vw - 32px)); }
+.toast {
+  display: grid; gap: 2px; padding: 12px 16px; border-radius: 12px;
+  background: #3a2a1e; border: 1px solid var(--accent); box-shadow: 0 12px 32px rgba(0,0,0,.45);
+  animation: toastIn .3s ease both; transition: opacity .4s, transform .4s;
+}
+.toast strong { font-size: 1rem; }
+.toast span { color: var(--ink-dim); font-size: .9rem; }
+.toast.out { opacity: 0; transform: translateY(8px); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+.idle-note { text-align: center; color: var(--ink-dim); font-size: .82rem; margin: 14px 0 0; }
 
 /* ---------- card ---------- */
 .card {
@@ -144,4 +196,6 @@ a { color: var(--accent); }
   .card { padding: 26px 20px 22px; }
   .story-text { font-size: 1.15rem; }
   .score .num { font-size: 2.1rem; }
+  .masthead { flex-wrap: wrap; align-items: center; }
+  .gb-pop { width: min(280px, calc(100vw - 32px)); }
 }
